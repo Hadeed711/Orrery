@@ -1,22 +1,22 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { fmtDateTime, statusTag } from "@/lib/format";
-import { DEFAULT_LOC } from "@/lib/location";
+import { effectiveLoc } from "@/lib/location";
 import { upcomingLaunches } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Launch Center" };
 
 export default async function LaunchesPage() {
-  const rows = await upcomingLaunches(30);
-  const tz = DEFAULT_LOC.tz;
+  const [rows, loc] = await Promise.all([upcomingLaunches(30), effectiveLoc()]);
+  const tz = loc.tz;
 
   return (
     <>
       <p className="eyebrow">Launch Center</p>
       <h1>Every launch, worldwide.</h1>
       <p className="sub">
-        Synced from Launch Library 2 (The Space Devs). Times localized to {DEFAULT_LOC.label}.
+        Synced from Launch Library 2 (The Space Devs). Times localized to {loc.label}.
         Countdowns, webcasts and alerts arrive in Phase 4.
       </p>
 

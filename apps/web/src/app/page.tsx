@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { skyTonight } from "@orrery/core";
 import { fmtDate, fmtTime, statusTag } from "@/lib/format";
-import { locFromSearchParams } from "@/lib/location";
+import { effectiveLoc } from "@/lib/location";
 import { upcomingEvents, upcomingLaunches } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export default async function TonightPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const loc = locFromSearchParams(await searchParams);
+  const loc = await effectiveLoc(await searchParams);
   const sky = skyTonight(loc.lat, loc.lon);
   const [events, nextLaunches] = await Promise.all([upcomingEvents(5), upcomingLaunches(3)]);
   const tz = loc.tz;

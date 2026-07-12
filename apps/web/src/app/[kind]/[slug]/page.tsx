@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { skyTonight } from "@orrery/core";
 import { fmtDateTime, fmtTime } from "@/lib/format";
-import { DEFAULT_LOC } from "@/lib/location";
+import { effectiveLoc } from "@/lib/location";
 import { entityByKindSlug, kindToPath } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +32,7 @@ export default async function EntityPage({
   if (!data) notFound();
   const { entity, facts, edgesOut, edgesIn } = data;
 
-  const loc = DEFAULT_LOC;
+  const loc = await effectiveLoc();
   const sky = PLANET_SLUGS.has(slug) || slug === "moon" || slug === "sun" ? skyTonight(loc.lat, loc.lon) : null;
   const planetNow = sky?.planets.find((p) => p.slug === slug) ?? null;
 

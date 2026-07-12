@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { fmtDate, fmtMonth, fmtTime, statusTag } from "@/lib/format";
-import { DEFAULT_LOC } from "@/lib/location";
+import { effectiveLoc } from "@/lib/location";
 import { upcomingEvents, upcomingLaunches } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +17,9 @@ interface Item {
 }
 
 export default async function CalendarPage() {
-  const tz = DEFAULT_LOC.tz;
-  const [events, launches] = await Promise.all([upcomingEvents(40), upcomingLaunches(20)]);
+  const loc = await effectiveLoc();
+  const tz = loc.tz;
+  const [events, launches] = await Promise.all([upcomingEvents(60), upcomingLaunches(20)]);
 
   const items: Item[] = [
     ...events.map(({ entity, event }) => ({
@@ -51,7 +52,7 @@ export default async function CalendarPage() {
       <h1>Everything above you, in order.</h1>
       <p className="sub">
         Astronomical events are computed from ephemerides; launches sync from Launch Library 2 and
-        reschedule themselves. Times shown for {DEFAULT_LOC.label} ({tz}).
+        reschedule themselves. Times shown for {loc.label} ({tz}).
       </p>
       <p style={{ marginTop: 14 }}>
         <a className="pill-btn" href="/calendar.ics" style={{ textDecoration: "none" }}>

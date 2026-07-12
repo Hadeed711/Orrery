@@ -14,7 +14,7 @@
 | 1 | Blueprint & Gap Analysis | Documentation | 🟩 Approved (2026-07-12) |
 | 2 | Product Definition & Design | Documentation + Prototype | 🟩 Approved (2026-07-12) |
 | 3 | Walking Skeleton | Code | 🟩 Done & committed (2026-07-12, `405b632`) |
-| 4 | MVP Build A — Sky Calendar & Launch Center | Code | 🟨 In progress — increment 1 committed (`dd10304`: ICS feed, countdowns, night mode) |
+| 4 | MVP Build A — Sky Calendar & Launch Center | Code | 🟩 Substantially complete (2026-07-13) — full events engine, local eclipse circumstances, location picker, ICS, countdowns, night mode. Neon DB live. Remaining: month grid, sky strip, light theme |
 | 5 | MVP Build B — Knowledge Pages & News Engine | Code | ⬜ Not started |
 | 6 | Beta Launch Readiness | Code + Ops | ⬜ Not started |
 | 7+ | Post-MVP Tracks (chosen by results) | Code | ⬜ Not started |
@@ -100,7 +100,11 @@ an honest viability assessment, and a full list of external requirements (APIs, 
 
 **Exit criteria.** The calendar is genuinely useful to you personally for a week.
 
-**Increment 1 delivered (2026-07-12, commit `dd10304`):** subscribable `/calendar.ics` feed (89 events, self-updating on launch slips), live T− countdowns on launch pages, red night-vision mode with no-flash persistence. **Remaining for Phase 4:** meteor showers + conjunctions/oppositions/elongations computation, per-city eclipse circumstances, location picker UI, month-grid view, "Tonight's Sky" page polish + sky strip, design-system pass (light theme).
+**Increment 1 delivered (2026-07-12, commit `dd10304`):** subscribable `/calendar.ics` feed (self-updating on launch slips), live T− countdowns, red night-vision mode with no-flash persistence.
+
+**Increment 2 delivered (2026-07-13):** full computed-events engine — meteor-shower peaks with **moon-interference scoring**, planetary oppositions (with magnitude), Mercury/Venus greatest elongations, equinoxes/solstices, planet-planet conjunctions (observability-filtered, solar-glare excluded); **per-location solar-eclipse circumstances** on event pages (contact times, obscuration, Sun altitude — golden-tested against Madrid/Reykjavik/Lahore for 2026-08-12); cookie-based **location picker** (26 cities + GPS) localizing every page. 165 events + 30 launches live in **Neon Postgres** (production DB). 21 tests green.
+
+**Remaining for Phase 4 (minor):** month-grid view, sky-strip visualization, light theme, gazetteer city search (places table), meteor-shower radiant/best-window per location.
 
 **Needed from you.** Test it from your real location; feedback.
 

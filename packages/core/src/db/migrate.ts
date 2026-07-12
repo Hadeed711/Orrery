@@ -1,4 +1,5 @@
 ﻿/** Applies ./drizzle migrations to whichever database the env selects. Run: npm run db:migrate */
+import "../env";
 import path from "node:path";
 import * as schema from "./schema";
 import { pgliteDir } from "./client";

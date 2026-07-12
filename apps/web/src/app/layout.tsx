@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LocationPicker } from "@/components/LocationPicker";
 import { NightToggle } from "@/components/NightToggle";
+import { effectiveLoc } from "@/lib/location";
 import "./globals.css";
 
 /** Applies persisted night mode before first paint (no white flash — PRD DS-2). */
@@ -12,7 +14,8 @@ export const metadata: Metadata = {
     "Every object, every mission, every telescope, every event — one graph of everything space. Sky calendar, launch tracking, and tonight's sky for your location.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const loc = await effectiveLoc();
   return (
     <html lang="en">
       <body>
@@ -31,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/status">Status</Link>
             </nav>
             <span style={{ flex: 1 }} />
+            <LocationPicker currentLabel={loc.label} />
             <NightToggle />
           </header>
           <main>{children}</main>

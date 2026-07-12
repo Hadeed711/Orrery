@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Countdown } from "@/components/Countdown";
 import { fmtDateTime, statusTag } from "@/lib/format";
-import { DEFAULT_LOC } from "@/lib/location";
+import { effectiveLoc } from "@/lib/location";
 import { kindToPath, launchBySlug } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export default async function LaunchPage({ params }: { params: Promise<{ slug: s
   const data = await launchBySlug(slug);
   if (!data) notFound();
   const { entity, launch, related } = data;
-  const tz = DEFAULT_LOC.tz;
+  const { tz } = await effectiveLoc();
 
   return (
     <>

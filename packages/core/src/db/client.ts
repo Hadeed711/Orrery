@@ -4,6 +4,7 @@
  *  - DATABASE_URL unset -> embedded PGlite in ./.data/pglite (zero-install dev)
  * Lazy singleton so `next build` never opens a database.
  */
+import "../env"; // repo-root .env for CLIs and monorepo web app (no-op if absent)
 import fs from "node:fs";
 import path from "node:path";
 import { drizzle as drizzleNodePg, type NodePgDatabase } from "drizzle-orm/node-postgres";

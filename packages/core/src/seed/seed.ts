@@ -11,7 +11,7 @@ import {
   upsertSource,
 } from "../db/repo";
 import { externalIds } from "../db/schema";
-import { computeLunarEclipses, computeMoonQuarters, computeSolarEclipses } from "../ephemeris/events";
+import { computeAllEvents } from "../ephemeris/events";
 
 interface PlanetSeed {
   slug: string;
@@ -86,15 +86,12 @@ async function main() {
   await setClaim(db, saturn, "day_length_hours", 10.7, srcEditorial);
   await setClaim(db, saturn, "year_length_years", 29.4, srcEditorial);
 
-  // computed calendar events (skeleton set)
+  // computed calendar events: quarters, eclipses, seasons, oppositions,
+  // elongations, conjunctions, meteor peaks (PRD CAL-1)
   const now = new Date();
   const from = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
   const until = new Date(Date.UTC(now.getUTCFullYear() + 3, 0, 1));
-  const events = [
-    ...computeMoonQuarters(now, 50),
-    ...computeSolarEclipses(from, until),
-    ...computeLunarEclipses(from, until),
-  ];
+  const events = computeAllEvents(from, until);
   for (const ev of events) {
     const id = await upsertEntityBySlug(db, {
       kind: "event",
@@ -108,14 +105,15 @@ async function main() {
       entityId: id,
       eventKind: ev.eventKind,
       peakAt: ev.peakAt,
+      magnitude: ev.magnitude ?? null,
       visibility: {},
       computedBy: "astronomy-engine@2",
       computedAt: new Date(),
     });
-    // Eclipses involve the obvious bodies — make the graph say so.
-    if (ev.eventKind !== "moon_phase") {
-      await ensureEdge(db, id, "involves", ids.get("sun")!, {}, srcEngine);
-      await ensureEdge(db, id, "involves", ids.get("moon")!, {}, srcEngine);
+    // The graph knows which bodies each event involves.
+    for (const slug of ev.involves) {
+      const target = ids.get(slug);
+      if (target) await ensureEdge(db, id, "involves", target, {}, srcEngine);
     }
   }
 

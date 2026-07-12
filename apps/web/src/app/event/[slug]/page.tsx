@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fmtDateTime } from "@/lib/format";
-import { DEFAULT_LOC } from "@/lib/location";
+import { localSolarEclipse } from "@orrery/core";
+import { fmtDateTime, fmtTime } from "@/lib/format";
+import { effectiveLoc } from "@/lib/location";
 import { eventBySlug, kindToPath } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -11,8 +12,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const data = await eventBySlug(slug);
   if (!data) notFound();
   const { entity, event, related } = data;
-  const tz = DEFAULT_LOC.tz;
+  const loc = await effectiveLoc();
+  const tz = loc.tz;
   const attrs = Object.entries(entity.attrs).filter(([, v]) => v != null);
+  const local =
+    event.eventKind === "solar_eclipse" ? localSolarEclipse(event.peakAt, loc.lat, loc.lon) : null;
 
   return (
     <>
@@ -29,6 +33,41 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
       {entity.summary ? <p className="sub" style={{ marginTop: 14 }}>{entity.summary}</p> : null}
 
       <div className="grid g2">
+        {local ? (
+          <div className="card">
+            <h3>From {loc.label}</h3>
+            {local.visible ? (
+              <>
+                <p style={{ marginBottom: 10 }}>
+                  <b>
+                    {local.kind === "total"
+                      ? "TOTAL eclipse visible!"
+                      : local.kind === "annular"
+                        ? "Annular ('ring of fire') eclipse visible"
+                        : `Partial eclipse — ${Math.min(99, Math.round((local.obscuration ?? 0) * 100))}% of the Sun covered`}
+                  </b>
+                </p>
+                <table>
+                  <tbody className="num">
+                    <tr><td>Begins</td><td>{fmtTime(local.partialBeginUtc, tz)}</td></tr>
+                    {local.totalityBeginUtc ? (
+                      <tr><td>Totality</td><td>{fmtTime(local.totalityBeginUtc, tz)} → {fmtTime(local.totalityEndUtc, tz)}</td></tr>
+                    ) : null}
+                    <tr><td>Maximum</td><td>{fmtTime(local.peakUtc, tz)} · Sun alt {local.sunAltitudeAtPeak}°</td></tr>
+                    <tr><td>Ends</td><td>{fmtTime(local.partialEndUtc, tz)}</td></tr>
+                  </tbody>
+                </table>
+                <p className="note">Computed for your exact location — change it in the header. Never look at the Sun without certified eclipse glasses.</p>
+              </>
+            ) : (
+              <p style={{ color: "var(--dim)" }}>
+                Not visible from your location
+                {local.reason === "sun-below-horizon" ? " — the Sun is below your horizon during the eclipse." : "."}
+                {" "}Pick another city in the header to check elsewhere.
+              </p>
+            )}
+          </div>
+        ) : null}
         {attrs.length > 0 ? (
           <div className="card">
             <h3>Details</h3>
@@ -57,9 +96,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
           </div>
         ) : null}
       </div>
-      <p className="note">
-        Per-location circumstances (visibility, contact times, obscuration for your city) arrive with the Phase 4 calendar.
-      </p>
+      {!local ? (
+        <p className="note">
+          Per-location visibility for this event type arrives as Phase 4 completes.
+        </p>
+      ) : null}
     </>
   );
 }
