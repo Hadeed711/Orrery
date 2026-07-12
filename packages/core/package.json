@@ -1,0 +1,23 @@
+{
+  "name": "@orrery/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./db": "./src/db/client.ts",
+    "./schema": "./src/db/schema.ts",
+    "./ephemeris": "./src/ephemeris/index.ts"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.0",
+    "astronomy-engine": "^2.1.19",
+    "drizzle-orm": "^0.44.0",
+    "pg": "^8.13.0",
+    "uuidv7": "^1.0.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.0"
+  }
+}

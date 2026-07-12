@@ -1,0 +1,85 @@
+/* Orrery walking-skeleton styles — token palette from the Phase 2 prototype.
+   Full design system (light theme, red night mode, components) lands in Phase 4 (PRD DS-1/2). */
+:root {
+  --bg: #070a12;
+  --panel: #0d1220;
+  --panel2: #111830;
+  --line: #1c2436;
+  --ink: #e9edf7;
+  --dim: #8992a8;
+  --faint: #5a6378;
+  --brass: #d9a854;
+  --brass-ink: #1a1104;
+  --sky: #8fb8de;
+  --go: #5fbf77;
+  --hold: #e0862f;
+  --scrub: #d06555;
+  --serif: "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+a { color: var(--sky); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+.shell { max-width: 1060px; margin: 0 auto; padding: 0 20px 70px; }
+
+header.site {
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 15px 0 12px; border-bottom: 1px solid var(--line); margin-bottom: 26px;
+}
+.wordmark { display: flex; align-items: center; gap: 9px; font-family: var(--serif); font-style: italic; font-size: 23px; color: var(--ink); }
+.orb { width: 21px; height: 21px; border: 1.5px solid var(--brass); border-radius: 50%; position: relative; transform: rotate(-18deg); }
+.orb::after { content: ""; position: absolute; top: -3px; left: 50%; width: 5px; height: 5px; background: var(--brass); border-radius: 50%; transform: translateX(-50%); }
+header.site nav { display: flex; gap: 16px; flex-wrap: wrap; }
+header.site nav a { color: var(--dim); font-size: 14.5px; }
+header.site nav a:hover { color: var(--ink); text-decoration: none; }
+
+.eyebrow { font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brass); margin-bottom: 8px; }
+h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(25px, 4.5vw, 36px); line-height: 1.15; text-wrap: balance; }
+h2 { font-family: var(--serif); font-weight: 500; font-size: 20px; margin: 26px 0 10px; }
+.sub { color: var(--dim); margin-top: 6px; max-width: 62ch; }
+
+.grid { display: grid; gap: 14px; margin-top: 22px; }
+@media (min-width: 760px) { .g2 { grid-template-columns: 1fr 1fr; } .gm { grid-template-columns: 1.4fr 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 17px 19px; }
+.card h3 { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); font-weight: 600; margin-bottom: 11px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); text-align: left; font-weight: 600; padding: 0 12px 7px 0; }
+td { padding: 8px 12px 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.tbl-wrap { overflow-x: auto; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.tag { display: inline-block; font-size: 11.5px; letter-spacing: 0.05em; padding: 2px 9px; border-radius: 99px; border: 1px solid var(--line); color: var(--dim); white-space: nowrap; }
+.tag.brass { color: var(--brass); border-color: rgba(217, 168, 84, 0.45); }
+.tag.go { color: var(--go); border-color: rgba(95, 191, 119, 0.45); }
+.tag.hold { color: var(--hold); border-color: rgba(224, 134, 47, 0.45); }
+.tag.scrub { color: var(--scrub); border-color: rgba(208, 101, 85, 0.45); }
+.updot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--go); margin-right: 7px; vertical-align: 1px; }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 99px; padding: 4px 12px; font-size: 13px; color: var(--sky); }
+
+.evt { display: flex; gap: 14px; padding: 13px 2px; border-top: 1px solid var(--line); align-items: baseline; flex-wrap: wrap; }
+.evt:first-of-type { border-top: none; }
+.evt .date { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--brass); min-width: 108px; font-size: 13.5px; }
+.evt .body { flex: 1; min-width: 220px; }
+.evt .title { font-size: 15.5px; font-weight: 600; }
+.evt .meta { font-size: 13px; color: var(--dim); margin-top: 2px; max-width: 70ch; }
+
+.facts { display: flex; gap: 8px 24px; flex-wrap: wrap; margin-top: 12px; font-size: 14px; color: var(--dim); }
+.facts b { color: var(--ink); font-weight: 600; }
+.prov { border-bottom: 1px dotted var(--faint); cursor: help; }
+.crumb { font-size: 13px; color: var(--faint); margin-bottom: 12px; }
+.crumb a { color: var(--dim); }
+.note { font-size: 12.5px; color: var(--faint); margin-top: 10px; }
+
+footer.site { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 14px; font-size: 12.5px; color: var(--faint); display: flex; gap: 16px; flex-wrap: wrap; }

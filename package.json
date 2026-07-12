@@ -1,0 +1,29 @@
+{
+  "name": "orrery",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Orrery — every object, every mission, every telescope, every event. One graph of everything space.",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "start": "npm run start -w web",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx packages/core/src/db/migrate.ts",
+    "seed": "tsx packages/core/src/seed/seed.ts",
+    "sync:ll2": "tsx packages/connectors/src/run.ts ll2",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p apps/web && tsc --noEmit -p packages/core && tsc --noEmit -p packages/connectors"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "drizzle-kit": "^0.31.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
