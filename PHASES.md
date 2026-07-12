@@ -13,8 +13,8 @@
 |---|-------|------|--------|
 | 1 | Blueprint & Gap Analysis | Documentation | 🟩 Approved (2026-07-12) |
 | 2 | Product Definition & Design | Documentation + Prototype | 🟩 Approved (2026-07-12) |
-| 3 | Walking Skeleton | Code | 🟨 In progress |
-| 4 | MVP Build A — Sky Calendar & Launch Center | Code | ⬜ Not started |
+| 3 | Walking Skeleton | Code | 🟩 Done & committed (2026-07-12, `405b632`) |
+| 4 | MVP Build A — Sky Calendar & Launch Center | Code | 🟨 In progress — increment 1 committed (`dd10304`: ICS feed, countdowns, night mode) |
 | 5 | MVP Build B — Knowledge Pages & News Engine | Code | ⬜ Not started |
 | 6 | Beta Launch Readiness | Code + Ops | ⬜ Not started |
 | 7+ | Post-MVP Tracks (chosen by results) | Code | ⬜ Not started |
@@ -77,6 +77,8 @@ an honest viability assessment, and a full list of external requirements (APIs, 
 
 **Exit criteria.** You can open a URL and see tomorrow's real launches and tonight's real sky data.
 
+**Delivered (2026-07-12, commit `405b632`).** Runs locally with zero accounts: `npm install && npm run db:migrate && npm run seed && npm run sync:ll2 && npm run dev` → http://localhost:3000. Embedded PGlite DB (swap to Neon via `DATABASE_URL`); 30 real launches synced; 61 computed events; golden tests pin the 2026-08-12 and 2027-08-02 eclipses; CI workflow ready for GitHub. Verified end-to-end (all pages + API + error paths). GitHub/Vercel/Neon accounts still pending from owner for public preview deploy.
+
 **Needed from you.** GitHub account (repo), choice of host (Vercel free tier recommended), free Neon/Supabase Postgres OR local-only for now. Command permissions for `npm`/`node`/`git` (I'll request the specific ones then).
 
 **Estimated effort.** 2–4 working sessions.
@@ -97,6 +99,8 @@ an honest viability assessment, and a full list of external requirements (APIs, 
 - First-pass design system: dark-first UI + red "night vision" mode.
 
 **Exit criteria.** The calendar is genuinely useful to you personally for a week.
+
+**Increment 1 delivered (2026-07-12, commit `dd10304`):** subscribable `/calendar.ics` feed (89 events, self-updating on launch slips), live T− countdowns on launch pages, red night-vision mode with no-flash persistence. **Remaining for Phase 4:** meteor showers + conjunctions/oppositions/elongations computation, per-city eclipse circumstances, location picker UI, month-grid view, "Tonight's Sky" page polish + sky strip, design-system pass (light theme).
 
 **Needed from you.** Test it from your real location; feedback.
 
