@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Countdown } from "@/components/Countdown";
 import { fmtDateTime, statusTag } from "@/lib/format";
 import { DEFAULT_LOC } from "@/lib/location";
 import { kindToPath, launchBySlug } from "@/lib/queries";
@@ -24,6 +25,11 @@ export default async function LaunchPage({ params }: { params: Promise<{ slug: s
         <span className="num">NET <b>{fmtDateTime(launch.net, tz)}</b> ({tz})</span>
         <span className="num">UTC <b>{launch.net ? launch.net.toISOString().replace("T", " ").slice(0, 16) : "—"}</b></span>
         <span className={`tag ${statusTag(launch.status)}`}>{launch.status}</span>
+        {launch.net ? (
+          <span style={{ fontSize: 18 }}>
+            <Countdown targetIso={launch.net.toISOString()} />
+          </span>
+        ) : null}
       </div>
 
       {entity.summary ? <p className="sub" style={{ marginTop: 14 }}>{entity.summary}</p> : null}

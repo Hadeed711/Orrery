@@ -51,7 +51,12 @@ export default async function CalendarPage() {
       <h1>Everything above you, in order.</h1>
       <p className="sub">
         Astronomical events are computed from ephemerides; launches sync from Launch Library 2 and
-        reschedule themselves. Times shown for {DEFAULT_LOC.label} ({tz}). ICS feeds arrive in Phase 4.
+        reschedule themselves. Times shown for {DEFAULT_LOC.label} ({tz}).
+      </p>
+      <p style={{ marginTop: 14 }}>
+        <a className="pill-btn" href="/calendar.ics" style={{ textDecoration: "none" }}>
+          ⭳ Subscribe — ICS feed for Google/Apple/Outlook
+        </a>
       </p>
 
       {[...byMonth.entries()].map(([month, monthItems]) => (

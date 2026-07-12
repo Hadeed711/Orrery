@@ -83,3 +83,28 @@ td { padding: 8px 12px 8px 0; border-top: 1px solid var(--line); vertical-align:
 .note { font-size: 12.5px; color: var(--faint); margin-top: 10px; }
 
 footer.site { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 14px; font-size: 12.5px; color: var(--faint); display: flex; gap: 16px; flex-wrap: wrap; }
+
+.pill-btn { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); border-radius: 99px; padding: 6px 13px; font: inherit; font-size: 13px; color: var(--dim); background: var(--panel); cursor: pointer; }
+.pill-btn:hover { border-color: var(--faint); color: var(--ink); }
+
+/* ── Red night-vision mode (PRD DS-2): pure token remap, preserves dark adaptation ── */
+:root.night {
+  --bg: #0a0000;
+  --panel: #140303;
+  --panel2: #1b0505;
+  --line: #3a0e0e;
+  --ink: #ff5a48;
+  --dim: #b03a30;
+  --faint: #7a2a22;
+  --brass: #ff5a48;
+  --brass-ink: #1a0300;
+  --sky: #e0574a;
+  --go: #ff5a48;
+  --hold: #ff5a48;
+  --scrub: #ff5a48;
+}
+:root.night .tag.brass, :root.night .tag.go, :root.night .tag.hold, :root.night .tag.scrub {
+  color: var(--dim);
+  border-color: var(--line);
+}
+:root.night .updot { background: var(--ink); }
