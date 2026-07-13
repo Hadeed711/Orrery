@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Analytics } from "@/components/Analytics";
 import { LocationPicker } from "@/components/LocationPicker";
 import { NightToggle } from "@/components/NightToggle";
+import { PwaRegister } from "@/components/PwaRegister";
+import { sessionUser } from "@/lib/auth";
 import { effectiveLoc } from "@/lib/location";
 import "./globals.css";
 
@@ -16,11 +19,13 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const loc = await effectiveLoc();
+  const [loc, user] = await Promise.all([effectiveLoc(), sessionUser()]);
   return (
     <html lang="en">
       <body>
         <script dangerouslySetInnerHTML={{ __html: nightInit }} />
+        <PwaRegister />
+        <Analytics />
         <div className="shell">
           <header className="site">
             <Link href="/" className="wordmark" aria-label="Orrery home">
@@ -36,8 +41,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/missions">Missions</Link>
               <Link href="/telescopes">Telescopes</Link>
               <Link href="/search">Search</Link>
+              {user ? <Link href="/feed">Feed</Link> : null}
             </nav>
             <span style={{ flex: 1 }} />
+            {user ? (
+              <Link className="pill-btn" href="/account" title={user.email}>
+                {user.name || "Account"}
+              </Link>
+            ) : (
+              <Link className="pill-btn" href="/signin">
+                Sign in
+              </Link>
+            )}
             <LocationPicker currentLabel={loc.label} />
             <NightToggle />
           </header>

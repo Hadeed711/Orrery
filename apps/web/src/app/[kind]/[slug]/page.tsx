@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { skyTonight } from "@orrery/core";
+import { FollowButton } from "@/components/FollowButton";
 import { NewsList } from "@/components/NewsList";
+import { sessionUser } from "@/lib/auth";
 import { fmtDateTime, fmtTime } from "@/lib/format";
 import { effectiveLoc } from "@/lib/location";
-import { entityByKindSlug, kindToPath, newsForEntity } from "@/lib/queries";
+import { entityByKindSlug, isFollowing, kindToPath, newsForEntity } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +59,8 @@ export default async function EntityPage({
   if (!data) notFound();
   const { entity, facts, edgesOut, edgesIn } = data;
   const news = await newsForEntity(entity.id, 8);
+  const user = await sessionUser();
+  const following = user ? await isFollowing(user.id, entity.id) : false;
 
   const loc = await effectiveLoc();
   const sky = PLANET_SLUGS.has(slug) || slug === "moon" || slug === "sun" ? skyTonight(loc.lat, loc.lon) : null;
@@ -80,7 +84,10 @@ export default async function EntityPage({
         <Link href="/">Orrery</Link> › {pathKind}s › {entity.name}
       </p>
       <p className="eyebrow">{cls.replace(/-/g, " ")}</p>
-      <h1>{entity.name}</h1>
+      <h1 style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+        {entity.name}
+        <FollowButton entityId={entity.id} initialFollowing={following} signedIn={Boolean(user)} />
+      </h1>
       {entity.summary ? <p className="sub">{entity.summary}</p> : null}
 
       {facts.length > 0 ? (

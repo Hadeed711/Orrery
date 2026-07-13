@@ -48,16 +48,19 @@ No API keys needed: Launch Library 2, JPL Horizons, CelesTrak, NOAA SWPC all wor
 | *(Deferred)* NASA API key | APOD images, NeoWs, Mars photos — now planned for the media-enrichment pass | Free (instant email signup) | api.nasa.gov | `NASA_API_KEY` |
 | *(Optional)* ADS API token | Paper links on object pages | Free | ui.adsabs.harvard.edu | `ADS_TOKEN` |
 
-## Phase 6 — Beta Launch
+## Phase 6 — Beta Launch (status as of 2026-07-14: code delivered; ✅ = built & waiting only for the key)
 
 | Item | Purpose | Cost | Where | Env var |
 |---|---|---|---|---|
-| **Resend account** (or Postmark) | Digest & auth emails | Free tier (≈3k/mo) | resend.com (needs domain DNS records) | `RESEND_API_KEY` |
-| **Google OAuth credentials** | "Sign in with Google" | Free | console.cloud.google.com | `GOOGLE_CLIENT_ID/SECRET` |
-| Web-push VAPID keys | Browser push alerts | Free (I generate them) | generated locally | `VAPID_*` |
-| **Sentry account** | Error monitoring | Free tier | sentry.io | `SENTRY_DSN` |
-| **PostHog** (or Plausible) | Privacy-friendly analytics | Free tier | posthog.com | `POSTHOG_KEY` |
-| **Cloudflare account** | DNS, CDN, R2 storage later | Free | cloudflare.com | — |
+| ✅ `AUTH_SECRET` | Session signing (required in production) | Free — `openssl rand -base64 32` | you generate it | `AUTH_SECRET` |
+| ✅ Web-push VAPID keys | Browser launch alerts | Free — **already generated into `.env`** | `npx web-push generate-vapid-keys` | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` |
+| ✅ **GitHub Actions secrets** | Real scheduler + uptime + weekly DB backup | Free | repo → Settings → Secrets/Variables | secrets `JOB_SECRET`, `DATABASE_URL`; variable `SITE_URL` |
+| ✅ **Resend account** (optional) | Weekly digest emails (job no-ops without it) | Free tier (≈3k/mo, 100/day) | resend.com | `RESEND_API_KEY`, `EMAIL_FROM` |
+| ✅ **Google OAuth credentials** (optional) | "Sign in with Google" (email+password works without) | Free | console.cloud.google.com | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
+| ✅ **PostHog** (optional) | Privacy-friendly analytics **+ client error tracking** | Free tier (1M events/mo) | posthog.com | `NEXT_PUBLIC_POSTHOG_KEY` |
+| *(Deferred)* Sentry | Deep error monitoring — PostHog error capture covers beta | Free tier | sentry.io | `SENTRY_DSN` |
+| *(Not needed)* UptimeRobot | GH Actions health-check emails you on failure instead | — | — | — |
+| **Cloudflare account** | DNS, CDN, R2 storage later (when domain is bought) | Free | cloudflare.com | — |
 
 ## Phase 7+ tracks (only when we start each track)
 

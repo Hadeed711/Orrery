@@ -31,6 +31,8 @@ Poll `http://localhost:3000/api/v0/sky/tonight` until 200 (it needs no DB but co
 - `/sitemap.xml` `/robots.txt` — SEO (sitemap is a DB query over all entities)
 - `GET /api/v0/sky/tonight?lat=&lon=` — computed JSON
 - `POST /api/v0/jobs/ll2` or `/api/v0/jobs/news` with header `x-job-secret: dev` — in-process connector runs
+- **Phase 6 surfaces:** `/signin` `/account` `/feed` (auth-gated) · `GET /api/health` · `/manifest.webmanifest` `/sw.js` `/icons/icon-192.png` (PWA) · `POST /api/v0/jobs/alerts|digest` (x-job-secret; digest skips w/o RESEND_API_KEY) · `POST/DELETE /api/v0/push` and `POST /api/v0/follows` (session cookie required)
+- Auth flow via curl: `curl -c jar.txt -X POST /api/auth/sign-up/email -H "content-type: application/json" -d '{"email":…,"password":…,"name":…}'` then reuse `-b jar.txt`; entity id for follow tests: `npx tsx scripts/print-entity-id.ts object saturn`
 
 ## Gotchas learned the hard way
 - **Don't run seed/sync CLIs while the dev server is up** — PGlite is single-process; stop the server, run pipeline, restart (or use the jobs API route, which runs in the server process).
@@ -38,3 +40,6 @@ Poll `http://localhost:3000/api/v0/sky/tonight` until 200 (it needs no DB but co
 - astronomy-engine is UMD/CJS: import as namespace with `.default ??` fallback (see packages/core/src/ephemeris/sky.ts). Named ESM imports break under tsx.
 - Relative imports in packages/ are **extensionless** (no `.js` suffix) — Next's webpack can't resolve `.js`-suffixed TS imports.
 - PowerShell 5.1 `Set-Content` mangles UTF-8 without BOM — don't bulk-edit source with it; use per-file tools.
+- better-auth POSTs (except sign-up/sign-in) require an `Origin: http://localhost:3000` header from curl, else `MISSING_OR_NULL_ORIGIN`.
+- The middleware rate limiter (30/min on /api/auth, 120/min on /api) will 429 your own curl loops — wait ~60 s for the window to reset.
+- Root `.env` now holds VAPID keys + DATABASE_URL; `NEXT_PUBLIC_*` vars are read server-side and passed as props (root .env is invisible to Next's build-time inlining).

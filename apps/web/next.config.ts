@@ -12,6 +12,22 @@ const config: NextConfig = {
       ? ""
       : path.resolve(process.cwd(), "..", "..", ".data", "pglite"),
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), payment=()" },
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+        ],
+      },
+      // The service worker must be allowed to control the whole origin.
+      { source: "/sw.js", headers: [{ key: "Service-Worker-Allowed", value: "/" }] },
+    ];
+  },
 };
 
 export default config;

@@ -1,0 +1,24 @@
+# Launch push alerts + uptime probe (Phase 6 OPS). A failing health check fails
+# the workflow, and GitHub emails the repo owner — that's the free uptime monitor.
+name: Alerts + uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  alerts:
+    runs-on: ubuntu-latest
+    env:
+      JOB_SECRET: ${{ secrets.JOB_SECRET }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - name: Health check
+        run: |
+          if [ -z "$SITE_URL" ]; then echo "SITE_URL not configured — skipping"; exit 0; fi
+          curl -fsS -m 30 "$SITE_URL/api/health"
+      - name: Send due launch alerts
+        run: |
+          if [ -z "$JOB_SECRET" ] || [ -z "$SITE_URL" ]; then echo "JOB_SECRET/SITE_URL not configured — skipping"; exit 0; fi
+          curl -fsS -m 90 -X POST -H "x-job-secret: $JOB_SECRET" "$SITE_URL/api/v0/jobs/alerts"

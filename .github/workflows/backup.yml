@@ -1,0 +1,30 @@
+# Weekly Postgres backup (Phase 6 OPS): pg_dump of Neon, stored as a GitHub
+# Actions artifact (90-day retention). Needs repo secret DATABASE_URL.
+# Belt-and-braces on top of Neon's own point-in-time restore window.
+name: DB backup
+
+on:
+  schedule:
+    - cron: "30 5 * * 0" # Sundays 05:30 UTC
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: pg_dump (custom format, via postgres:17 image to match Neon)
+        run: |
+          if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL not configured — skipping"; exit 0; fi
+          mkdir -p backup
+          docker run --rm -e DATABASE_URL -v "$PWD/backup:/backup" postgres:17-alpine \
+            sh -c 'pg_dump "$DATABASE_URL" -Fc -f /backup/orrery-$(date +%Y%m%d).dump'
+          ls -lh backup
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: orrery-db-backup-${{ github.run_id }}
+          path: backup/
+          retention-days: 90
+          if-no-files-found: warn

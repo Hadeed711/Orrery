@@ -1,0 +1,26 @@
+# Scheduled data syncs (Phase 6 OPS): Vercel Hobby crons are daily-only, so
+# GitHub Actions is the real scheduler — it just pings the deployed job routes.
+# Needs repo secret JOB_SECRET and repo variable SITE_URL; no-ops until both exist.
+name: Sync (LL2 + news)
+
+on:
+  schedule:
+    - cron: "3,33 * * * *" # every 30 min (offset to dodge top-of-hour congestion)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      JOB_SECRET: ${{ secrets.JOB_SECRET }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - name: Launch Library 2 sync
+        run: |
+          if [ -z "$JOB_SECRET" ] || [ -z "$SITE_URL" ]; then echo "JOB_SECRET/SITE_URL not configured — skipping"; exit 0; fi
+          curl -fsS -m 90 -X POST -H "x-job-secret: $JOB_SECRET" "$SITE_URL/api/v0/jobs/ll2"
+      - name: News sync
+        if: always()
+        run: |
+          if [ -z "$JOB_SECRET" ] || [ -z "$SITE_URL" ]; then echo "JOB_SECRET/SITE_URL not configured — skipping"; exit 0; fi
+          curl -fsS -m 90 -X POST -H "x-job-secret: $JOB_SECRET" "$SITE_URL/api/v0/jobs/news"

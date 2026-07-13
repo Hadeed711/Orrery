@@ -15,8 +15,8 @@
 | 2 | Product Definition & Design | Documentation + Prototype | 🟩 Approved (2026-07-12) |
 | 3 | Walking Skeleton | Code | 🟩 Done & committed (2026-07-12, `405b632`) |
 | 4 | MVP Build A — Sky Calendar & Launch Center | Code | 🟩 Substantially complete (2026-07-13) — full events engine, local eclipse circumstances, location picker, ICS, countdowns, night mode. Neon DB live. Remaining: month grid, sky strip, light theme |
-| 5 | MVP Build B — Knowledge Pages & News Engine | Code | ✅ Done — awaiting gate approval (2026-07-13) — ~300-entity catalog (Messier 110, missions, telescopes, rockets), news engine w/ entity tagging, FTS search, sitemap/JSON-LD |
-| 6 | Beta Launch Readiness | Code + Ops | ⬜ Not started |
+| 5 | MVP Build B — Knowledge Pages & News Engine | Code | 🟩 Done (2026-07-13) — ~300-entity catalog (Messier 110, missions, telescopes, rockets), news engine w/ entity tagging, FTS search, sitemap/JSON-LD |
+| 6 | Beta Launch Readiness | Code + Ops | ✅ Done — awaiting gate approval (2026-07-14) — auth (email+password, Google-ready), follows + personal feed, T-15 launch push alerts, weekly digest, PWA, rate limiting, health/uptime/backup ops. Deploy + keys pending from owner |
 | 7+ | Post-MVP Tracks (chosen by results) | Code | ⬜ Not started |
 
 ---
@@ -151,6 +151,19 @@ an honest viability assessment, and a full list of external requirements (APIs, 
 - Production deploy on the real domain + soft-launch checklist (share to 2–3 communities).
 
 **Exit criteria.** Strangers are using it. We watch metrics for 2–4 weeks and pick Phase 7 tracks from data.
+
+**Delivered (2026-07-14).**
+- **Auth (better-auth + Drizzle):** email+password works with zero keys; Google OAuth activates automatically when `GOOGLE_CLIENT_ID/SECRET` exist. `/signin`, `/account` (profile, follows, notifications, sign-out, delete-account with cascade), session menu in the header. CSRF origin checks + better-auth's built-in auth rate limiter.
+- **Follows + personal feed:** ☆ Follow on every entity page → `/feed` (upcoming launches/events connected to follows through graph edges + news mentioning follows). Tables: `follows`, better-auth `user/session/account/verification`.
+- **Launch push alerts:** self-generated VAPID keys (free, no account), `/api/v0/push` subscribe/unsubscribe, service-worker push + click handling, `/api/v0/jobs/alerts` sends T-15 alerts to followers of anything connected to the launch; `push_sent` ledger = exactly-once; dead subscriptions auto-pruned (410).
+- **Weekly digest:** `/api/v0/jobs/digest` (Mondays via GH Actions) — week-ahead launches/events + news per user via Resend REST (no SDK); skips cleanly without `RESEND_API_KEY`; `digest_sent` ledger = once per ISO week; empty weeks send nothing.
+- **PWA:** manifest + generated icons (incl. maskable), service worker (network-first pages w/ offline fallback, cache-first static assets, never caches API/auth/personal pages), installable.
+- **Hardening:** middleware rate limiting (30/min auth, 120/min API per IP), security headers (nosniff, frame-deny, HSTS, referrer/permissions policy), `/api/health` DB probe.
+- **Ops (all free):** GitHub Actions as the real scheduler — sync every 30 min, alerts+uptime every 15 min (health-check failure emails the owner via workflow failure), digest Mondays, weekly `pg_dump` backup to 90-day artifacts. `vercel.json` crons reduced to Hobby-legal daily backstops. PostHog analytics env-gated (`NEXT_PUBLIC_POSTHOG_KEY`), incl. client error capture.
+- 41 tests green (7 new: alert windows/dedupe keys, ISO week keys, digest composer + HTML escaping). Verified end-to-end: sign-up → session → follow Saturn → personalized feed → push subscribe → jobs → rate limiter 429s → account deletion cascade.
+- `.env.example` documents every variable; everything degrades gracefully when a key is absent.
+
+**Remaining for the owner (see REQUIREMENTS.md Phase 6):** Vercel repo import + env vars, GitHub secrets (`JOB_SECRET`, `DATABASE_URL`) + variable (`SITE_URL`), then optional keys: Google OAuth, Resend, PostHog, domain.
 
 **Needed from you.** Email-sending account (Resend free tier), domain DNS access, decision on soft-launch venues.
 

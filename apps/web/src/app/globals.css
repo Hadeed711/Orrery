@@ -86,6 +86,22 @@ footer.site { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 
 
 .pill-btn { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); border-radius: 99px; padding: 6px 13px; font: inherit; font-size: 13px; color: var(--dim); background: var(--panel); cursor: pointer; }
 .pill-btn:hover { border-color: var(--faint); color: var(--ink); }
+.pill-btn.active { border-color: var(--brass); color: var(--brass); }
+.pill-btn.primary { background: var(--brass); color: var(--brass-ink); border-color: var(--brass); justify-content: center; }
+.pill-btn.primary:hover { filter: brightness(1.1); color: var(--brass-ink); }
+.pill-btn.danger { border-color: var(--scrub); color: var(--scrub); }
+.pill-btn:disabled { opacity: 0.5; cursor: wait; }
+
+/* ── Auth + account forms (Phase 6) ── */
+.auth-card { max-width: 420px; margin-top: 18px; }
+.auth-form { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.auth-form label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--dim); }
+.auth-form input {
+  font: inherit; color: var(--ink); background: var(--panel2);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px;
+}
+.auth-form input:focus { outline: none; border-color: var(--faint); }
+.form-error { color: var(--scrub); font-size: 13px; margin: 0; }
 
 /* ── Red night-vision mode (PRD DS-2): pure token remap, preserves dark adaptation ── */
 :root.night {

@@ -1,0 +1,20 @@
+# Weekly email digest (Phase 6 DIGEST-1) — Mondays 08:00 UTC.
+# The route itself is idempotent per ISO week, so reruns are safe.
+name: Weekly digest
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    env:
+      JOB_SECRET: ${{ secrets.JOB_SECRET }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - name: Send weekly digests
+        run: |
+          if [ -z "$JOB_SECRET" ] || [ -z "$SITE_URL" ]; then echo "JOB_SECRET/SITE_URL not configured — skipping"; exit 0; fi
+          curl -fsS -m 290 -X POST -H "x-job-secret: $JOB_SECRET" "$SITE_URL/api/v0/jobs/digest"

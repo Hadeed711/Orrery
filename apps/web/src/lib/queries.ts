@@ -7,6 +7,7 @@ import {
   edges,
   entities,
   eventsAstro,
+  follows,
   launches,
   sources,
 } from "@orrery/core/schema";
@@ -248,6 +249,80 @@ export async function entitiesForKinds(kinds: EntityRow["kind"][]) {
     .from(entities)
     .where(inArray(entities.kind, kinds))
     .orderBy(asc(entities.name));
+}
+
+// ── follows + personalized feed (Phase 6) ───────────────────────
+
+export async function followsForUser(userId: string) {
+  const db = await getDb();
+  return db
+    .select({ id: entities.id, kind: entities.kind, slug: entities.slug, name: entities.name })
+    .from(follows)
+    .innerJoin(entities, eq(entities.id, follows.entityId))
+    .where(eq(follows.userId, userId))
+    .orderBy(asc(entities.name));
+}
+
+export async function isFollowing(userId: string, entityId: string): Promise<boolean> {
+  const db = await getDb();
+  const [row] = await db
+    .select({ entityId: follows.entityId })
+    .from(follows)
+    .where(and(eq(follows.userId, userId), eq(follows.entityId, entityId)))
+    .limit(1);
+  return Boolean(row);
+}
+
+/** Latest news mentioning any followed entity (grouped tags included). */
+export async function newsForEntities(entityIds: string[], limit = 30) {
+  if (entityIds.length === 0) return [];
+  const db = await getDb();
+  const rows = await db
+    .selectDistinctOn([articles.publishedAt, articles.id], articleCols)
+    .from(articleEntities)
+    .innerJoin(articles, eq(articles.id, articleEntities.articleId))
+    .innerJoin(sources, eq(sources.id, articles.sourceId))
+    .where(inArray(articleEntities.entityId, entityIds))
+    .orderBy(desc(articles.publishedAt), desc(articles.id))
+    .limit(limit);
+  return withArticleTags(rows);
+}
+
+/**
+ * Upcoming launches connected to any followed entity by a graph edge
+ * (launch —used_vehicle→ rocket, —operated_by→ agency, —launched_from→ pad).
+ */
+export async function upcomingLaunchesForEntities(entityIds: string[], limit = 15) {
+  if (entityIds.length === 0) return [];
+  const db = await getDb();
+  return db
+    .selectDistinctOn([launches.net, entities.id], { entity: entities, launch: launches })
+    .from(edges)
+    .innerJoin(launches, eq(launches.entityId, edges.srcId))
+    .innerJoin(entities, eq(entities.id, launches.entityId))
+    .where(
+      and(
+        inArray(edges.dstId, entityIds),
+        isNotNull(launches.net),
+        gte(launches.net, new Date(Date.now() - 3600_000)),
+      ),
+    )
+    .orderBy(asc(launches.net), asc(entities.id))
+    .limit(limit);
+}
+
+/** Upcoming sky events that involve a followed object (event —involves→ object). */
+export async function upcomingEventsForEntities(entityIds: string[], limit = 15) {
+  if (entityIds.length === 0) return [];
+  const db = await getDb();
+  return db
+    .selectDistinctOn([eventsAstro.peakAt, entities.id], { entity: entities, event: eventsAstro })
+    .from(edges)
+    .innerJoin(eventsAstro, eq(eventsAstro.entityId, edges.srcId))
+    .innerJoin(entities, eq(entities.id, eventsAstro.entityId))
+    .where(and(inArray(edges.dstId, entityIds), gte(eventsAstro.peakAt, new Date(Date.now() - 3600_000))))
+    .orderBy(asc(eventsAstro.peakAt), asc(entities.id))
+    .limit(limit);
 }
 
 export async function statusOverview() {
