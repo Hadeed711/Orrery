@@ -41,9 +41,11 @@ No API keys needed: Launch Library 2, JPL Horizons, CelesTrak, NOAA SWPC all wor
 
 | Item | Purpose | Cost | Where | Env var |
 |---|---|---|---|---|
-| **NASA API key** | APOD images, NeoWs, Mars photos | Free (instant email signup) | api.nasa.gov | `NASA_API_KEY` |
+| News ingestion | **Delivered keyless** via Spaceflight News API (SNAPI) — no account needed | Free | — | `SNAPI_BASE` (optional override) |
+| Site origin | Sitemap/canonical/OG URLs on the deployed site | Free | Vercel project env | `SITE_URL` |
 | **Domain name** | Public identity + SEO begins | ~$10–15/yr | Cloudflare Registrar / Namecheap | — |
 | **Google Search Console** | Indexing + SEO monitoring | Free | search.google.com/search-console (needs domain) | — |
+| *(Deferred)* NASA API key | APOD images, NeoWs, Mars photos — now planned for the media-enrichment pass | Free (instant email signup) | api.nasa.gov | `NASA_API_KEY` |
 | *(Optional)* ADS API token | Paper links on object pages | Free | ui.adsabs.harvard.edu | `ADS_TOKEN` |
 
 ## Phase 6 — Beta Launch

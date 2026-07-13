@@ -4,6 +4,7 @@
  */
 import { getDb } from "../db/client";
 import {
+  addAliases,
   ensureEdge,
   setClaim,
   upsertEntityBySlug,
@@ -12,6 +13,7 @@ import {
 } from "../db/repo";
 import { externalIds } from "../db/schema";
 import { computeAllEvents } from "../ephemeris/events";
+import { seedCatalog } from "./catalog";
 
 interface PlanetSeed {
   slug: string;
@@ -70,6 +72,10 @@ async function main() {
       .insert(externalIds)
       .values({ entityId: id, system: "horizons", value: o.horizons })
       .onConflictDoNothing();
+    // News-tagging aliases: skip Earth/Sun (too noisy in prose); "the Moon" is safe.
+    if (o.slug !== "earth" && o.slug !== "sun") {
+      await addAliases(db, id, o.slug === "moon" ? ["the Moon"] : [o.name]);
+    }
   }
 
   const sun = ids.get("sun")!;
@@ -117,7 +123,16 @@ async function main() {
     }
   }
 
-  console.log(`seeded: ${OBJECTS.length} objects, ${events.length} computed events`);
+  // Phase-5 knowledge catalog: moons, dwarf planets, Messier 110 + bright NGC,
+  // missions, telescopes/observatories, vehicles, agencies — with tagging aliases.
+  const known = new Map<string, string>();
+  for (const [slug, id] of ids) known.set(`object:${slug}`, id);
+  const catalog = await seedCatalog(db, srcEditorial, known);
+
+  console.log(
+    `seeded: ${OBJECTS.length} objects, ${events.length} computed events, ` +
+      `${catalog.entities} catalog entities (${catalog.edges} edges)`,
+  );
 }
 
 main().then(() => process.exit(0)).catch((err) => {

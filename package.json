@@ -16,6 +16,7 @@
     "db:migrate": "tsx packages/core/src/db/migrate.ts",
     "seed": "tsx packages/core/src/seed/seed.ts",
     "sync:ll2": "tsx packages/connectors/src/run.ts ll2",
+    "sync:news": "tsx packages/connectors/src/run.ts news",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p apps/web && tsc --noEmit -p packages/core && tsc --noEmit -p packages/connectors"
   },

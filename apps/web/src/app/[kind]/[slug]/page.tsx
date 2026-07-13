@@ -1,23 +1,51 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { skyTonight } from "@orrery/core";
+import { NewsList } from "@/components/NewsList";
 import { fmtDateTime, fmtTime } from "@/lib/format";
 import { effectiveLoc } from "@/lib/location";
-import { entityByKindSlug, kindToPath } from "@/lib/queries";
+import { entityByKindSlug, kindToPath, newsForEntity } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 /** IA §1: one template serves /object /rocket /pad /agency /mission /telescope (T6). */
 const PATH_TO_KIND = {
-  object: "object",
-  rocket: "vehicle",
-  pad: "pad",
-  agency: "agency",
-  mission: "mission",
-  telescope: "telescope",
+  object: ["object"],
+  rocket: ["vehicle"],
+  pad: ["pad"],
+  agency: ["agency", "company"],
+  mission: ["mission", "spacecraft"],
+  telescope: ["telescope", "observatory"],
 } as const;
 
 const PLANET_SLUGS = new Set(["mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune"]);
+
+async function load(pathKind: string, slug: string) {
+  const kinds = PATH_TO_KIND[pathKind as keyof typeof PATH_TO_KIND];
+  if (!kinds) return null;
+  for (const kind of kinds) {
+    const data = await entityByKindSlug(kind, slug);
+    if (data) return data;
+  }
+  return null;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ kind: string; slug: string }>;
+}): Promise<Metadata> {
+  const { kind: pathKind, slug } = await params;
+  const data = await load(pathKind, slug);
+  if (!data) return {};
+  return {
+    title: data.entity.name,
+    description: data.entity.summary ?? undefined,
+    alternates: { canonical: `/${pathKind}/${slug}` },
+    openGraph: { title: data.entity.name, description: data.entity.summary ?? undefined },
+  };
+}
 
 export default async function EntityPage({
   params,
@@ -25,21 +53,29 @@ export default async function EntityPage({
   params: Promise<{ kind: string; slug: string }>;
 }) {
   const { kind: pathKind, slug } = await params;
-  const kind = PATH_TO_KIND[pathKind as keyof typeof PATH_TO_KIND];
-  if (!kind) notFound();
-
-  const data = await entityByKindSlug(kind, slug);
+  const data = await load(pathKind, slug);
   if (!data) notFound();
   const { entity, facts, edgesOut, edgesIn } = data;
+  const news = await newsForEntity(entity.id, 8);
 
   const loc = await effectiveLoc();
   const sky = PLANET_SLUGS.has(slug) || slug === "moon" || slug === "sun" ? skyTonight(loc.lat, loc.lon) : null;
   const planetNow = sky?.planets.find((p) => p.slug === slug) ?? null;
 
-  const cls = typeof entity.attrs.class === "string" ? entity.attrs.class : kind;
+  const cls = typeof entity.attrs.class === "string" ? entity.attrs.class : entity.kind;
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Orrery", item: "/" },
+      { "@type": "ListItem", position: 2, name: entity.name, item: `/${pathKind}/${slug}` },
+    ],
+  };
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <p className="crumb">
         <Link href="/">Orrery</Link> › {pathKind}s › {entity.name}
       </p>
@@ -120,6 +156,16 @@ export default async function EntityPage({
               ))}
             </div>
             <p className="note">Chips are edges, never hand-written lists (PRD ENT-5).</p>
+          </div>
+        ) : null}
+
+        {news.length > 0 ? (
+          <div className="card">
+            <h3>In the news</h3>
+            <NewsList items={news} />
+            <p className="note">
+              Auto-tagged from the news feed via the alias dictionary (PRD NEWS-3).
+            </p>
           </div>
         ) : null}
       </div>

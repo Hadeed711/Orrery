@@ -1,8 +1,10 @@
 ﻿/** CLI runner: `npm run sync:ll2` (or `tsx packages/connectors/src/run.ts <connector>`). */
 import { syncLaunchLibrary } from "./ll2";
+import { syncNews } from "./news";
 
 const connectors: Record<string, () => Promise<unknown>> = {
   ll2: () => syncLaunchLibrary(),
+  news: () => syncNews(),
 };
 
 const name = process.argv[2] ?? "";

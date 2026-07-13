@@ -28,6 +28,18 @@ export function fmtMonth(d: DateInput, tz: string): string {
   return new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: tz }).format(date);
 }
 
+export function timeAgo(d: DateInput): string {
+  const date = toDate(d);
+  if (!date) return "—";
+  const mins = Math.max(0, Math.round((Date.now() - date.getTime()) / 60_000));
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 14) return `${days}d ago`;
+  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(date);
+}
+
 export function statusTag(status: string): "go" | "hold" | "scrub" | "" {
   if (status === "go" || status === "success") return "go";
   if (status === "failure" || status === "partial-failure") return "scrub";

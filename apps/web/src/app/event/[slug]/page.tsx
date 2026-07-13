@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { localSolarEclipse } from "@orrery/core";
@@ -6,6 +7,22 @@ import { effectiveLoc } from "@/lib/location";
 import { eventBySlug, kindToPath } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const data = await eventBySlug(slug);
+  if (!data) return {};
+  return {
+    title: data.entity.name,
+    description: data.entity.summary ?? undefined,
+    alternates: { canonical: `/event/${slug}` },
+    openGraph: { title: data.entity.name, description: data.entity.summary ?? undefined },
+  };
+}
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -18,8 +35,22 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const local =
     event.eventKind === "solar_eclipse" ? localSolarEclipse(event.peakAt, loc.lat, loc.lon) : null;
 
+  // schema.org Event — the SEO payload for calendar pages (IA §3).
+  const eventLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: entity.name,
+    description: entity.summary ?? undefined,
+    startDate: event.peakAt.toISOString(),
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    location: { "@type": "VirtualLocation", url: `/event/${slug}` },
+    organizer: { "@type": "Organization", name: "Orrery", url: "/" },
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventLd) }} />
       <p className="crumb">
         <Link href="/calendar">Calendar</Link> › {entity.name}
       </p>

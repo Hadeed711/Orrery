@@ -5,7 +5,16 @@
  */
 import { and, eq } from "drizzle-orm";
 import type { Db } from "./client";
-import { claims, edges, entities, externalIds, launches, eventsAstro, sources } from "./schema";
+import {
+  claims,
+  edges,
+  entities,
+  entityAliases,
+  externalIds,
+  launches,
+  eventsAstro,
+  sources,
+} from "./schema";
 
 type EntityKind = (typeof entities.$inferInsert)["kind"];
 type EdgeRel = (typeof edges.$inferInsert)["rel"];
@@ -116,6 +125,16 @@ export async function setClaim(
   } else {
     await db.insert(claims).values({ entityId, field, value, sourceId, confidence });
   }
+}
+
+/** Alias dictionary rows power news tagging (NEWS-3) and search synonyms. */
+export async function addAliases(db: Db, entityId: string, aliases: string[]): Promise<void> {
+  const rows = aliases.map((a) => a.trim()).filter((a) => a.length >= 2);
+  if (rows.length === 0) return;
+  await db
+    .insert(entityAliases)
+    .values(rows.map((alias) => ({ entityId, alias })))
+    .onConflictDoNothing();
 }
 
 export async function upsertLaunchRow(

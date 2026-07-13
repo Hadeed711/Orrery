@@ -15,7 +15,7 @@
 | 2 | Product Definition & Design | Documentation + Prototype | 🟩 Approved (2026-07-12) |
 | 3 | Walking Skeleton | Code | 🟩 Done & committed (2026-07-12, `405b632`) |
 | 4 | MVP Build A — Sky Calendar & Launch Center | Code | 🟩 Substantially complete (2026-07-13) — full events engine, local eclipse circumstances, location picker, ICS, countdowns, night mode. Neon DB live. Remaining: month grid, sky strip, light theme |
-| 5 | MVP Build B — Knowledge Pages & News Engine | Code | ⬜ Not started |
+| 5 | MVP Build B — Knowledge Pages & News Engine | Code | ✅ Done — awaiting gate approval (2026-07-13) — ~300-entity catalog (Messier 110, missions, telescopes, rockets), news engine w/ entity tagging, FTS search, sitemap/JSON-LD |
 | 6 | Beta Launch Readiness | Code + Ops | ⬜ Not started |
 | 7+ | Post-MVP Tracks (chosen by results) | Code | ⬜ Not started |
 
@@ -125,7 +125,14 @@ an honest viability assessment, and a full list of external requirements (APIs, 
 
 **Exit criteria.** Entity pages + news feed live on the preview site; Google Search Console connected and indexing.
 
-**Needed from you.** NASA API key (free, 2 minutes), decide domain name and buy it (~$10/yr) if going public.
+**Delivered (2026-07-13).**
+- **Seeded catalog (~300 entities):** all major moons + dwarf planets + notable small bodies; the **complete Messier 110** + 16 bright NGC showpieces (each with magnitude/constellation/distance claims); ~75 famous missions (Voyager → Artemis, edges to agencies and target worlds); 35 telescopes/observatories (JWST → Rubin → LIGO); 21 launch vehicles (slugs aligned with LL2 so connector data merges, not duplicates); 16 agencies/operators. Browse pages: `/objects`, `/missions`, `/telescopes`, `/rockets`.
+- **News engine:** `articles` + `article_entities` + `entity_aliases` tables; SNAPI connector (keyless, aggregates the ~50 quality outlets — per-outlet rows in the sources registry) with URL canonicalization, normalized-title dedupe, and the deterministic **alias-dict@v0 tagger** (word-boundary, case-sensitive acronyms, title-vs-excerpt salience). `/news` feed, entity-page "In the news" module, homepage teaser, `/api/v0/jobs/news` + Vercel cron at :15/:45.
+- **Search v0:** Postgres FTS (GIN, `websearch_to_tsquery`) over entities + articles with kind boosting and alias fallback (`M31`, `Webb`, `HST`) at `/search`.
+- **SEO plumbing:** DB-driven `sitemap.xml`, `robots.txt`, schema.org Event + BreadcrumbList JSON-LD, per-page metadata/canonicals/OpenGraph, `SITE_URL`-aware metadataBase.
+- 34 tests green (tagger, dedupe, catalog integrity + all prior golden tests). Direct per-outlet RSS ingestion deliberately deferred — the schema already stores per-outlet sources, so it's additive.
+
+**Needed from you.** Deploy to Vercel (repo import still pending from Phase 4 — add `SITE_URL` env var too), then connect Google Search Console. Domain (~$10/yr) when ready to go public. NASA API key not needed yet (planned for APOD/media enrichment later).
 
 **Estimated effort.** 3–5 working sessions.
 

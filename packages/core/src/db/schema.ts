@@ -1,8 +1,10 @@
 /**
- * The Orrery knowledge graph as Postgres — walking-skeleton subset of docs/DATA-MODEL.md.
- * Three graph tables (entities, edges, claims) + registries + typed satellites (launches, events_astro).
- * Deferred to later phases: articles, places, ephem_daily, media_assets, redirects, users.
+ * The Orrery knowledge graph as Postgres — subset of docs/DATA-MODEL.md.
+ * Three graph tables (entities, edges, claims) + registries + typed satellites
+ * (launches, events_astro) + news layer (articles, article_entities, entity_aliases).
+ * Deferred to later phases: places, ephem_daily, media_assets, redirects, users.
  */
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -10,6 +12,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   real,
   text,
   timestamp,
@@ -55,6 +58,25 @@ export const entities = pgTable(
   (t) => [
     uniqueIndex("entities_kind_slug").on(t.kind, t.slug),
     index("entities_kind").on(t.kind),
+    // Search v0 (DATA-MODEL §6.5): FTS over name+summary, kind-boosted at query time.
+    index("entities_fts").using(
+      "gin",
+      sql`to_tsvector('english', ${t.name} || ' ' || coalesce(${t.summary}, ''))`,
+    ),
+  ],
+);
+
+/** Alternate names powering news tagging (NEWS-3) and search synonyms (DATA-MODEL §7). */
+export const entityAliases = pgTable(
+  "entity_aliases",
+  {
+    entityId: uuid("entity_id").notNull().references(() => entities.id),
+    alias: text("alias").notNull(),
+    lang: text("lang").notNull().default("en"),
+  },
+  (t) => [
+    uniqueIndex("entity_aliases_entity_alias").on(t.entityId, t.alias),
+    index("entity_aliases_alias").on(t.alias),
   ],
 );
 
@@ -148,5 +170,45 @@ export const eventsAstro = pgTable(
   (t) => [
     index("events_peak").on(t.peakAt),
     index("events_kind_peak").on(t.eventKind, t.peakAt),
+  ],
+);
+
+// ── news layer (DATA-MODEL: articles + materialized mentions) ───
+export const articles = pgTable(
+  "articles",
+  {
+    id: uuid("id").primaryKey().$defaultFn(() => uuidv7()),
+    sourceId: uuid("source_id").notNull().references(() => sources.id),
+    url: text("url").notNull().unique(), // canonicalized
+    title: text("title").notNull(),
+    excerpt: text("excerpt"),
+    imageUrl: text("image_url"),
+    lang: text("lang").notNull().default("en"),
+    publishedAt: timestamp("published_at", { withTimezone: true }).notNull(),
+    ingestedAt: timestamp("ingested_at", { withTimezone: true }).notNull().defaultNow(),
+    dedupeKey: text("dedupe_key"), // normalized-title hash grouping (NEWS-2)
+  },
+  (t) => [
+    index("articles_published").on(t.publishedAt),
+    index("articles_dedupe").on(t.dedupeKey),
+    index("articles_fts").using(
+      "gin",
+      sql`to_tsvector('english', ${t.title} || ' ' || coalesce(${t.excerpt}, ''))`,
+    ),
+  ],
+);
+
+/** Materialized `mentions` edges — kept out of `edges` because of news volume. */
+export const articleEntities = pgTable(
+  "article_entities",
+  {
+    articleId: uuid("article_id").notNull().references(() => articles.id),
+    entityId: uuid("entity_id").notNull().references(() => entities.id),
+    salience: real("salience").notNull().default(0.5),
+    matchedBy: text("matched_by").notNull(), // 'alias-dict@v0' | 'reviewer'
+  },
+  (t) => [
+    primaryKey({ columns: [t.articleId, t.entityId] }),
+    index("article_entities_entity").on(t.entityId),
   ],
 );

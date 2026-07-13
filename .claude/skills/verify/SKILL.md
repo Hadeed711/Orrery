@@ -10,8 +10,9 @@ description: Build, run, and drive the Orrery web app to verify changes end-to-e
 npm install --no-audit --no-fund
 npx drizzle-kit generate     # only if packages/core/src/db/schema.ts changed
 npm run db:migrate           # applies ./drizzle to PGlite (.data/pglite) or $env:DATABASE_URL
-npm run seed                 # idempotent: objects + computed events
+npm run seed                 # idempotent: objects + computed events + ~300-entity catalog (slow vs Neon: ~2000 round-trips)
 npm run sync:ll2             # real launches from Launch Library 2 (needs internet, ~15 req/hr free)
+npm run sync:news            # space news via SNAPI (keyless) — run AFTER seed (tagger needs the alias dictionary)
 ```
 
 ## Launch
@@ -22,11 +23,14 @@ Poll `http://localhost:3000/api/v0/sky/tonight` until 200 (it needs no DB but co
 
 ## Surfaces to drive
 - `/` `/calendar` `/launches` `/status` — DB-backed pages
-- `/event/2026-08-12-total-solar-eclipse` — golden computed event
-- `/object/saturn` — entity template incl. live "Tonight from" module (rise/set computed per request)
+- `/news` — deduped, entity-tagged feed; `/search?q=jwst` — Postgres FTS (needs real Postgres FTS — works on PGlite too)
+- `/objects` `/missions` `/telescopes` `/rockets` — catalog browse (grouped by attrs.class)
+- `/event/2026-08-12-total-solar-eclipse` — golden computed event (+ schema.org Event JSON-LD)
+- `/object/saturn` `/object/m31` `/telescope/jwst` `/mission/voyager-1` — entity template incl. live sky + "In the news" modules
 - `/launch/<slug from /launches HTML>` — graph links + NET history
+- `/sitemap.xml` `/robots.txt` — SEO (sitemap is a DB query over all entities)
 - `GET /api/v0/sky/tonight?lat=&lon=` — computed JSON
-- `POST /api/v0/jobs/ll2` with header `x-job-secret: dev` — in-process connector run
+- `POST /api/v0/jobs/ll2` or `/api/v0/jobs/news` with header `x-job-secret: dev` — in-process connector runs
 
 ## Gotchas learned the hard way
 - **Don't run seed/sync CLIs while the dev server is up** — PGlite is single-process; stop the server, run pipeline, restart (or use the jobs API route, which runs in the server process).

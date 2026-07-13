@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { skyTonight } from "@orrery/core";
+import { NewsList } from "@/components/NewsList";
 import { fmtDate, fmtTime, statusTag } from "@/lib/format";
 import { effectiveLoc } from "@/lib/location";
-import { upcomingEvents, upcomingLaunches } from "@/lib/queries";
+import { latestNews, upcomingEvents, upcomingLaunches } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,11 @@ export default async function TonightPage({
 }) {
   const loc = await effectiveLoc(await searchParams);
   const sky = skyTonight(loc.lat, loc.lon);
-  const [events, nextLaunches] = await Promise.all([upcomingEvents(5), upcomingLaunches(3)]);
+  const [events, nextLaunches, news] = await Promise.all([
+    upcomingEvents(5),
+    upcomingLaunches(3),
+    latestNews(5),
+  ]);
   const tz = loc.tz;
   const moonPct = Math.round(sky.moon.illumination * 100);
 
@@ -102,6 +107,16 @@ export default async function TonightPage({
           <p className="note">No data yet — run <span className="num">npm run seed</span> and <span className="num">npm run sync:ll2</span>.</p>
         ) : null}
       </div>
+
+      {news.length > 0 ? (
+        <>
+          <h2>Latest news</h2>
+          <div className="card">
+            <NewsList items={news} />
+            <p className="note"><Link href="/news">All space news →</Link></p>
+          </div>
+        </>
+      ) : null}
     </>
   );
 }
