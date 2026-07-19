@@ -4,6 +4,10 @@
 
 A space knowledge-graph platform. Every feature (sky calendar, launch tracking, tonight's sky,
 entity pages, news) is a view over one canonical graph of entities and relationships.
+On top of the graph: a community (profiles, posts, follows, direct messages — people are
+followed, objects are *favorited*), world directories of space agencies/companies and the best
+space apps & sites, NASA imagery (APOD + archive galleries on entity pages), and the
+Mission Builder — design a satellite, get a generated mission patch and an engineering readout.
 
 **Project documents** (source of truth):
 [ORRERY-MASTER-PLAN.md](ORRERY-MASTER-PLAN.md) · [PHASES.md](PHASES.md) · [REQUIREMENTS.md](REQUIREMENTS.md) · [docs/](docs/)

@@ -7,8 +7,15 @@ import { NextResponse, type NextRequest } from "next/server";
  * on top of better-auth's own built-in limiter.
  */
 const WINDOW_MS = 60_000;
+// First matching prefix wins — tighter budgets for community write surfaces
+// (Phase 7) sit above the generic /api rule.
 const LIMITS: Array<{ prefix: string; max: number }> = [
   { prefix: "/api/auth", max: 30 },
+  { prefix: "/api/v0/posts", max: 30 },
+  { prefix: "/api/v0/messages", max: 60 },
+  { prefix: "/api/v0/profile", max: 20 },
+  { prefix: "/api/v0/user-follows", max: 30 },
+  { prefix: "/api/v0/nasa", max: 30 },
   { prefix: "/api", max: 120 },
 ];
 

@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const statics: MetadataRoute.Sitemap = [
     "", "/calendar", "/launches", "/news", "/objects", "/missions", "/telescopes", "/rockets", "/search",
+    "/companies", "/apps", "/apod", "/mission-builder", "/community",
   ].map((p) => ({ url: `${base}${p || "/"}`, changeFrequency: "daily" as const, priority: p === "" ? 1 : 0.8 }));
 
   const entityUrls: MetadataRoute.Sitemap = rows.map((r) => ({

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PostCard, type PostCardData } from "@/components/community/PostCard";
 import { NewsList } from "@/components/NewsList";
 import { sessionUser } from "@/lib/auth";
+import { postsFromFollowedPeople } from "@/lib/community";
 import { fmtDateTime } from "@/lib/format";
 import { effectiveLoc } from "@/lib/location";
 import {
@@ -21,34 +23,55 @@ export default async function FeedPage() {
   const user = await sessionUser();
   if (!user) redirect("/signin");
 
-  const followed = await followsForUser(user.id);
-  const ids = followed.map((f) => f.id);
-  const [news, nextLaunches, nextEvents, loc] = await Promise.all([
+  const favorites = await followsForUser(user.id);
+  const ids = favorites.map((f) => f.id);
+  const [news, nextLaunches, nextEvents, peoplePosts, loc] = await Promise.all([
     newsForEntities(ids, 25),
     upcomingLaunchesForEntities(ids, 10),
     upcomingEventsForEntities(ids, 10),
+    postsFromFollowedPeople(user.id, 20),
     effectiveLoc(),
   ]);
+
+  const empty = favorites.length === 0 && peoplePosts.length === 0;
 
   return (
     <>
       <p className="eyebrow">personal</p>
       <h1>Your feed</h1>
       <p className="sub">
-        Everything connected to the {followed.length} thing{followed.length === 1 ? "" : "s"} you
-        follow. Manage follows in your <Link href="/account">account</Link>.
+        Launches, sky events and news for your {favorites.length} favorite
+        {favorites.length === 1 ? "" : "s"}, plus posts from people you follow. Manage favorites in
+        your <Link href="/account">account</Link>; find people in the{" "}
+        <Link href="/community">community</Link>.
       </p>
 
-      {followed.length === 0 ? (
+      {empty ? (
         <div className="card">
           <p>
-            Follow anything in the graph to build your feed — start with{" "}
+            Favorite anything in the graph to build your feed — start with{" "}
             <Link href="/object/saturn">Saturn</Link>, <Link href="/telescope/jwst">JWST</Link> or{" "}
-            <Link href="/rocket/falcon-9">Falcon 9</Link>.
+            <Link href="/rocket/falcon-9">Falcon 9</Link> — and follow people in the{" "}
+            <Link href="/community">community</Link>.
           </p>
         </div>
       ) : (
         <div className="grid g2">
+          {peoplePosts.length > 0 ? (
+            <div className="card" style={{ gridColumn: "1 / -1" }}>
+              <h3>From people you follow</h3>
+              <div className="post-list">
+                {peoplePosts.map((p) => (
+                  <PostCard
+                    key={p.id}
+                    signedIn
+                    post={{ ...p, createdAt: p.createdAt.toISOString() } as PostCardData}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {nextLaunches.length > 0 ? (
             <div className="card">
               <h3>Upcoming launches</h3>
@@ -87,11 +110,11 @@ export default async function FeedPage() {
           ) : null}
 
           <div className="card" style={{ gridColumn: "1 / -1" }}>
-            <h3>News about what you follow</h3>
+            <h3>News about your favorites</h3>
             {news.length > 0 ? (
               <NewsList items={news} />
             ) : (
-              <p className="note">No recent articles mention your follows yet — check back soon.</p>
+              <p className="note">No recent articles mention your favorites yet — check back soon.</p>
             )}
           </div>
         </div>

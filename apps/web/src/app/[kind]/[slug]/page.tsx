@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { skyTonight } from "@orrery/core";
-import { FollowButton } from "@/components/FollowButton";
+import { EntityGallery } from "@/components/EntityGallery";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { NewsList } from "@/components/NewsList";
 import { sessionUser } from "@/lib/auth";
+import { factsheetFor } from "@/lib/factsheets";
 import { fmtDateTime, fmtTime } from "@/lib/format";
 import { effectiveLoc } from "@/lib/location";
 import { entityByKindSlug, isFollowing, kindToPath, newsForEntity } from "@/lib/queries";
@@ -67,6 +69,11 @@ export default async function EntityPage({
   const planetNow = sky?.planets.find((p) => p.slug === slug) ?? null;
 
   const cls = typeof entity.attrs.class === "string" ? entity.attrs.class : entity.kind;
+  const sheet = pathKind === "object" ? factsheetFor(slug) : null;
+  // Structured attrs beyond `class` — surfaced instead of buried in JSON.
+  const extraAttrs = Object.entries(entity.attrs).filter(
+    ([k, v]) => k !== "class" && (typeof v === "string" || typeof v === "number"),
+  );
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -86,12 +93,18 @@ export default async function EntityPage({
       <p className="eyebrow">{cls.replace(/-/g, " ")}</p>
       <h1 style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
         {entity.name}
-        <FollowButton entityId={entity.id} initialFollowing={following} signedIn={Boolean(user)} />
+        <FavoriteButton entityId={entity.id} initialFavorited={following} signedIn={Boolean(user)} />
       </h1>
+      {sheet ? <p className="sub tagline">{sheet.tagline}</p> : null}
       {entity.summary ? <p className="sub">{entity.summary}</p> : null}
 
-      {facts.length > 0 ? (
+      {facts.length > 0 || extraAttrs.length > 0 ? (
         <div className="facts">
+          {extraAttrs.map(([k, v]) => (
+            <span key={k}>
+              {k.replace(/_/g, " ")} <b>{String(v)}</b>
+            </span>
+          ))}
           {facts.map((f) => (
             <span
               className="prov"
@@ -102,6 +115,38 @@ export default async function EntityPage({
             </span>
           ))}
         </div>
+      ) : null}
+
+      {sheet ? (
+        <section aria-label="Factsheet">
+          <div className="grid g2">
+            {sheet.sections.map((s) => (
+              <div className="card" key={s.title}>
+                <h3>{s.title}</h3>
+                <table>
+                  <tbody>
+                    {s.rows.map(([k, v]) => (
+                      <tr key={k}>
+                        <td style={{ color: "var(--dim)", width: "42%" }}>{k}</td>
+                        <td>{v}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+            {sheet.funFacts.length > 0 ? (
+              <div className="card">
+                <h3>Did you know?</h3>
+                <ul className="funfacts">
+                  {sheet.funFacts.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        </section>
       ) : null}
 
       <div className="grid g2">
@@ -165,6 +210,8 @@ export default async function EntityPage({
             <p className="note">Chips are edges, never hand-written lists (PRD ENT-5).</p>
           </div>
         ) : null}
+
+        <EntityGallery query={entity.name} />
 
         {news.length > 0 ? (
           <div className="card">

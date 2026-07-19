@@ -2,16 +2,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-/**
- * Follow/unfollow toggle (Phase 6 FOLLOW-1).
- * `signedIn=false` renders a link-out to /signin instead of a dead button.
- */
-export function FollowButton({
-  entityId,
+/** Follow a PERSON (entities are favorited, people are followed — Phase 7). */
+export function UserFollowButton({
+  username,
   initialFollowing,
   signedIn,
 }: {
-  entityId: string;
+  username: string;
   initialFollowing: boolean;
   signedIn: boolean;
 }) {
@@ -19,21 +16,17 @@ export function FollowButton({
   const [following, setFollowing] = useState(initialFollowing);
   const [busy, setBusy] = useState(false);
 
-  if (!signedIn) {
-    return (
-      <button type="button" className="pill-btn" onClick={() => router.push("/signin")}>
-        ☆ Follow
-      </button>
-    );
-  }
-
   async function toggle() {
+    if (!signedIn) {
+      router.push("/signin");
+      return;
+    }
     setBusy(true);
     const next = !following;
-    const res = await fetch("/api/v0/follows", {
+    const res = await fetch("/api/v0/user-follows", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ entityId, follow: next }),
+      body: JSON.stringify({ username, follow: next }),
     });
     setBusy(false);
     if (res.ok) {
@@ -45,12 +38,12 @@ export function FollowButton({
   return (
     <button
       type="button"
-      className={`pill-btn${following ? " active" : ""}`}
+      className={`pill-btn${following ? " active" : " primary"}`}
       onClick={toggle}
       disabled={busy}
       aria-pressed={following}
     >
-      {following ? "★ Following" : "☆ Follow"}
+      {following ? "Following" : "Follow"}
     </button>
   );
 }

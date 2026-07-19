@@ -310,6 +310,80 @@ export const digestSent = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.weekKey] })],
 );
 
+// ── community layer (Phase 7) ───────────────────────────────────
+// People are followable; entities are favorited (the `follows` table above is
+// the favorites backend — it keeps powering feed/alerts/digest unchanged).
+
+/** Public identity a user builds on top of their auth record. */
+export const profiles = pgTable(
+  "profiles",
+  {
+    userId: text("user_id").primaryKey().references(() => user.id, { onDelete: "cascade" }),
+    username: text("username").notNull().unique(), // ^[a-z0-9_]{3,20}$, reserved names enforced in app
+    displayName: text("display_name"),
+    bio: text("bio"),
+    location: text("location"),
+    website: text("website"),
+    avatar: text("avatar"), // emoji glyph from the preset picker
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+);
+
+/** Short text posts about space; optional link into the graph. */
+export const posts = pgTable(
+  "posts",
+  {
+    id: uuid("id").primaryKey().$defaultFn(() => uuidv7()),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    body: text("body").notNull(), // 1..1000 chars, plain text
+    entityId: uuid("entity_id").references(() => entities.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("posts_user").on(t.userId), index("posts_created").on(t.createdAt)],
+);
+
+export const postLikes = pgTable(
+  "post_likes",
+  {
+    postId: uuid("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.postId, t.userId] }), index("post_likes_user").on(t.userId)],
+);
+
+/** Person→person follow (entities are favorited, people are followed). */
+export const userFollows = pgTable(
+  "user_follows",
+  {
+    followerId: text("follower_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    followingId: text("following_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.followerId, t.followingId] }),
+    index("user_follows_following").on(t.followingId),
+  ],
+);
+
+/** Direct messages; a conversation is the (sender, recipient) pair in either direction. */
+export const dmMessages = pgTable(
+  "dm_messages",
+  {
+    id: uuid("id").primaryKey().$defaultFn(() => uuidv7()),
+    senderId: text("sender_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    recipientId: text("recipient_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    body: text("body").notNull(), // 1..2000 chars, plain text
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("dm_sender_recipient_created").on(t.senderId, t.recipientId, t.createdAt),
+    index("dm_recipient_read").on(t.recipientId, t.readAt),
+  ],
+);
+
 /** Materialized `mentions` edges — kept out of `edges` because of news volume. */
 export const articleEntities = pgTable(
   "article_entities",

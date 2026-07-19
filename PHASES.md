@@ -16,8 +16,9 @@
 | 3 | Walking Skeleton | Code | 🟩 Done & committed (2026-07-12, `405b632`) |
 | 4 | MVP Build A — Sky Calendar & Launch Center | Code | 🟩 Substantially complete (2026-07-13) — full events engine, local eclipse circumstances, location picker, ICS, countdowns, night mode. Neon DB live. Remaining: month grid, sky strip, light theme |
 | 5 | MVP Build B — Knowledge Pages & News Engine | Code | 🟩 Done (2026-07-13) — ~300-entity catalog (Messier 110, missions, telescopes, rockets), news engine w/ entity tagging, FTS search, sitemap/JSON-LD |
-| 6 | Beta Launch Readiness | Code + Ops | ✅ Done — awaiting gate approval (2026-07-14) — auth (email+password, Google-ready), follows + personal feed, T-15 launch push alerts, weekly digest, PWA, rate limiting, health/uptime/backup ops. Deploy + keys pending from owner |
-| 7+ | Post-MVP Tracks (chosen by results) | Code | ⬜ Not started |
+| 6 | Beta Launch Readiness | Code + Ops | 🟩 Approved (2026-07-19, owner feedback kicked off Phase 7) — auth, follows + personal feed, T-15 launch push alerts, weekly digest, PWA, rate limiting, health/uptime/backup ops. Deploy + keys pending from owner |
+| 7 | Community, Directories, NASA media & UI v2 | Code | ✅ Done — awaiting gate approval (2026-07-20) — community (profiles/posts/people-follows/DMs), favorites rework, deep factsheets + NASA galleries, APOD, companies & apps directories, Mission Builder, NASA-style dark UI + mobile nav |
+| 8+ | Post-MVP Tracks (chosen by results) | Code | ⬜ Not started |
 
 ---
 
@@ -171,7 +172,48 @@ an honest viability assessment, and a full list of external requirements (APIs, 
 
 ---
 
-## Phase 7+ — Post-MVP Tracks (data decides the order)
+## Phase 7 — Community, Directories, NASA media & UI v2  ✅ (awaiting gate)
+
+**Goal (owner-directed at the Phase 6 gate).** Make Orrery feel like a place, not a database:
+people connect and post; objects carry every fact; the UI reads NASA-grade, not AI-template.
+
+**Delivered (2026-07-20).**
+- **Community.** `profiles` (username + display name + bio + location + website + emoji avatar —
+  auto-provisioned on first touch, editable in the `/account` profile builder), `posts` (+likes),
+  `user_follows` (people), `dm_messages` (direct messages, read receipts, unread badges in the nav).
+  Pages: `/community` (feed + composer), `/u/<username>` (public profile: posts, favorites,
+  follower counts, Follow/Message), `/messages` (+ per-person threads, 6-s polling). All routes
+  session-authenticated (better-auth), input-validated (length caps, control-char stripping,
+  username regex + reserved list), rate-limited per endpoint in middleware, plain-text stored and
+  React-escaped on render. Migration `0003` is purely additive.
+- **Follow → Favorite rework.** People are *followed*; sky objects are *favorited* (★). The old
+  `follows` table and `/api/v0/follows` endpoint are untouched — favorites still power the feed,
+  T-15 alerts and the digest. `/feed` now also shows posts from people you follow.
+- **Rich object pages.** Hand-curated deep factsheets (physical data, orbit, atmosphere,
+  exploration history, "did you know") for ~20 major bodies (Sun → Pluto, ocean moons), rendered
+  as sectioned cards on `/object/*`; all structured `attrs` surfaced; NASA archive image gallery
+  (keyless NASA Image & Video Library, cached 24 h) on every entity page.
+- **NASA APIs.** `NASA_API_KEY` wired: `/apod` (Astronomy Picture of the Day, hourly cache) +
+  gallery search proxy `/api/v0/nasa/images` (rate-limited, CDN-cached).
+- **Directories.** `/companies` — ~65 space agencies & companies across every spacefaring nation
+  (NASA→SUPARCO, SpaceX→Gilmour) with type/country filters + search; `/apps` — ~50 hand-picked
+  space apps & websites in 9 categories. Static editorial data, SEO-crawlable.
+- **Mission Builder (signature feature).** `/mission-builder`: name a satellite → deterministic
+  generated mission patch (SVG, downloadable), pick destination/instruments/power → real-physics
+  readout (transfer Δv, rocket-equation wet mass, launch-vehicle match, RTG warnings past 3 AU) +
+  "your name in the NASA archive" image search. Design persists in localStorage.
+- **UI v2.** NASA-inspired dark-only theme (deep-space blues, NASA-red accents, serif display),
+  animated CSS starfield + subtle motion (reduced-motion aware), squared quiet tags, sticky
+  blurred header, Explore dropdown + hamburger mobile nav, footer sitemap, unread-DM badge.
+  Night-vision/dark-mode toggle removed (site is dark by design). New pages in sitemap; private
+  pages (feed/account/messages) robots-disallowed.
+
+**Needed from you.** Try it: sign up two accounts, post, follow, DM; build a satellite; review the
+new theme on your phone. Then say "continue" (Phase 8 tracks) or ask for revisions.
+
+---
+
+## Phase 8+ — Post-MVP Tracks (data decides the order)
 
 Each is a self-contained track with its own mini-phase-plan when we get there:
 
